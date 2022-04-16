@@ -38,11 +38,11 @@ function statement(invoice, plays) {
     return result;
 }
 
-function amountFor(aPerfomance, play) {
+function amountFor(aPerfomance) {
 
         let result = 0;
 
-        switch (play.type) {
+        switch (playFor(aPerfomance).type) {
         case "tragedy": // 비극
             result = 40000;
             if (aPerfomance.audience > 30) {
@@ -58,7 +58,7 @@ function amountFor(aPerfomance, play) {
             result += 300 * aPerfomance.audience;
             break;
         default:
-            throw new Error(`알 수 없는 장르 : ${play.type}`);
+            throw new Error(`알 수 없는 장르 : ${playFor(aPerfomance).type}`);
         }
 
         return result;
