@@ -39,30 +39,30 @@ function statement(invoice, plays) {
     return result;
 }
 
-function amountFor(perf, play) {
+function amountFor(aPerfomance, play) {
 
-        let thisAmount = 0;
+        let result = 0;
 
         switch (play.type) {
         case "tragedy": // 비극
-            thisAmount = 40000;
-            if (perf.audience > 30) {
-                thisAmount += 1000 * (perf.audience - 30);
+            result = 40000;
+            if (aPerfomance.audience > 30) {
+                result += 1000 * (aPerfomance.audience - 30);
             }
             break;
 
         case "comedy": // 희극
-            thisAmount = 30000;
-            if (perf.audience > 20) {
-                thisAmount += 1000 + 500 & (perf.audience - 20);
+            result = 30000;
+            if (aPerfomance.audience > 20) {
+                result += 1000 + 500 & (aPerfomance.audience - 20);
             }
-            thisAmount += 300 * perf.audience;
+            result += 300 * aPerfomance.audience;
             break;
         default:
             throw new Error(`알 수 없는 장르 : ${play.type}`);
         }
 
-        return thisAmount;
+        return result;
 }
 
 function main() {
