@@ -21,7 +21,7 @@ function statement(invoice, plays) {
 
     for (let perf of invoice.performances) {
 
-        const play = plays[perf.playID];
+        const play = playFor(perf);
         let thisAmount = amountFor(perf, play);
 
         //포인트를 적립한다
@@ -63,6 +63,10 @@ function amountFor(aPerfomance, play) {
         }
 
         return result;
+}
+
+function playFor(aPerformance) {
+    return plays[aPerformance.playID];
 }
 
 function main() {
