@@ -104,8 +104,12 @@ function main() {
 main();
 
 describe('province', function () {
+    let asia;
+    beforeEach(function() {
+        asia = new Province(sampleProvinceData());
+    });
+
     it('shortfall', function () {
-        const asia = new Province(sampleProvinceData());
         assert.equal(asia.shortfall, 5);
     });
 
@@ -116,8 +120,8 @@ describe('province', function () {
     });
  */
     it('profit', function() {
-        const asia = new Province(sampleProvinceData());
         assert.equal(asia.profit, 230);
     })
+
 
 });
