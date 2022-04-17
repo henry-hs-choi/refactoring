@@ -4,7 +4,7 @@ var assert = require('assert');
 class Province {
     constructor(doc) {
         this._name = doc.name;
-        this._producer = [];
+        this._producers = [];
         this._totalProduction = 0;
         this._demand = doc.demand;
         this._price = doc.price;
@@ -17,7 +17,7 @@ class Province {
     }
 
     get name() {return this._name};
-    get producers() {return this._producer.slice();}
+    get producers() {return this._producers.slice();}
     get totalProduction() {return this._totalProduction;}
     set totalProduction(arg) {this._totalProduction = arg;}
     get demand() {return this._demand;}
