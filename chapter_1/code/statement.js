@@ -10,6 +10,7 @@ function statement(invoice, plays) {
     statementData.customer = invoice.customer; // 고객 데이터를 중간 데이터로 옮김
     statementData.performances = invoice.performances.map(enrichPerformance); // 공연 정보를 중간 데이터로 옮김
     statementData.totalAmount = totalAmount(statementData);
+    statementData.totalVolumeCredits = totalVolumeCredits(statementData);
 
     return renderPlainText(statementData);
 
@@ -66,6 +67,15 @@ function statement(invoice, plays) {
 
         return result;
     }
+
+    function totalVolumeCredits(data) {
+        let result = 0;
+        for (let perf of data.performances) {
+            result += perf.volumeCredits;
+        }
+
+        return result;
+    }
 }
 
 function renderPlainText(data) {
@@ -76,18 +86,11 @@ function renderPlainText(data) {
     }
 
     result += `총액: ${usd(data.totalAmount)}\n`;
-    result += `적립 포인트: ${totalVolumeCredits()}\n`;
+    result += `적립 포인트: ${data.totalVolumeCredits}\n`;
 
     return result;
 
-    function totalVolumeCredits() {
-        let result = 0;
-        for (let perf of data.performances) {
-            result += perf.volumeCredits;
-        }
 
-        return result;
-    }
 
     function usd(aNumber) {
         return new Intl.NumberFormat("en-us", {
