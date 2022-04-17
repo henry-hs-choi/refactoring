@@ -1,4 +1,10 @@
 
+class PerformanceCalculator {
+    constructor(aPerfomance) {
+        this.performance = aPerfomance;
+    }
+}
+
 function createStatementData(invoice, plays) {
     const statementData = {}; // hashMap
     statementData.customer = invoice.customer; // 고객 데이터를 중간 데이터로 옮김
@@ -8,6 +14,7 @@ function createStatementData(invoice, plays) {
     return statementData;
 
     function enrichPerformance(aPerfomance) {
+        const calculator = new PerformanceCalculator(aPerfomance);
         const result = Object.assign({}, aPerfomance); // 얕은 복사 수행
         result.play = playFor(result);
         result.amount = amountFor(result);
