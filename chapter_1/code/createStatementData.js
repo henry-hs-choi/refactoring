@@ -1,7 +1,40 @@
 
 class PerformanceCalculator {
-    constructor(aPerfomance) {
+    constructor(aPerfomance, aPlay) {
         this.performance = aPerfomance;
+        this.play = aPlay;
+    }
+
+    get amount() {
+        let result = 0;
+        switch (this.play.type) {
+            case "tragedy": // 비극
+                result = 40000;
+                if (this.performance.audience > 30) {
+                    result += 1000 * (this.performance.audience - 30);
+                }
+                break;
+            case "comedy": // 희극
+                result = 30000;
+                if (this.performance.audience > 20) {
+                    result += 1000 + 500 & (this.performance.audience - 20);
+                }
+                result += 300 * this.performance.audience;
+                break;
+            default:
+                throw new Error(`알 수 없는 장르 : ${this.performance.play.type}`);
+        }
+        return result;
+    }
+
+    get volumeCredits() {
+        let volumeCredits = 0;
+        volumeCredits += Math.max(this.performance.audience - 30, 0);
+
+        if ("comedy" == this.play.type)
+            volumeCredits += Math.floor(this.performance.audience / 5);
+
+        return volumeCredits;
     }
 }
 
@@ -14,49 +47,16 @@ function createStatementData(invoice, plays) {
     return statementData;
 
     function enrichPerformance(aPerfomance) {
-        const calculator = new PerformanceCalculator(aPerfomance);
+        const calculator = new PerformanceCalculator(aPerfomance, playFor(aPerfomance));
         const result = Object.assign({}, aPerfomance); // 얕은 복사 수행
-        result.play = playFor(result);
-        result.amount = amountFor(result);
-        result.volumeCredits = volumeCreditsFor(result);
+        result.play = calculator.play;
+        result.amount = calculator.amount;
+        result.volumeCredits = calculator.volumeCredits;
         return result;
     }
 
     function playFor(aPerformance) {
         return plays[aPerformance.playID];
-    }
-
-    function amountFor(aPerfomance) {
-        let result = 0;
-
-        switch (aPerfomance.play.type) {
-            case "tragedy": // 비극
-                result = 40000;
-                if (aPerfomance.audience > 30) {
-                    result += 1000 * (aPerfomance.audience - 30);
-                }
-                break;
-            case "comedy": // 희극
-                result = 30000;
-                if (aPerfomance.audience > 20) {
-                    result += 1000 + 500 & (aPerfomance.audience - 20);
-                }
-                result += 300 * aPerfomance.audience;
-                break;
-            default:
-                throw new Error(`알 수 없는 장르 : ${aPerfomance.play.type}`);
-        }
-        return result;
-    }
-
-    function volumeCreditsFor(aPerfomance) {
-        let volumeCredits = 0;
-        volumeCredits += Math.max(aPerfomance.audience - 30, 0);
-
-        if ("comedy" == aPerfomance.play.type)
-            volumeCredits += Math.floor(aPerfomance.audience / 5);
-
-        return volumeCredits;
     }
 
     function totalAmount(data) {
