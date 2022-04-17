@@ -6,40 +6,44 @@ class PerformanceCalculator {
     }
 
     get amount() {
-        let result = 0;
-        switch (this.play.type) {
-            case "tragedy": // 비극
-                result = 40000;
-                if (this.performance.audience > 30) {
-                    result += 1000 * (this.performance.audience - 30);
-                }
-                break;
-            case "comedy": // 희극
-                result = 30000;
-                if (this.performance.audience > 20) {
-                    result += 1000 + 500 & (this.performance.audience - 20);
-                }
-                result += 300 * this.performance.audience;
-                break;
-            default:
-                throw new Error(`알 수 없는 장르 : ${this.performance.play.type}`);
+        throw new Error(`subclass responsibility`);
+    }
+
+    get volumeCredits() {
+        return Math.max(this.performance.audience - 30, 0);
+    }
+}
+
+class TragedyCalculator extends PerformanceCalculator {
+    get amount() {
+        let result = 40000;
+        if (this.performance.audience > 30) {
+            result += 1000 * (this.performance.audience - 30);
+        }    
+        return result;
+    }
+}
+
+class ComedyCalculator extends PerformanceCalculator {
+    get amount() {
+        let result = 30000;
+        if (this.performance.audience > 20) {
+            result += 1000 + 500 & (this.performance.audience - 20);
         }
+        result += 300 * this.performance.audience;
         return result;
     }
 
     get volumeCredits() {
-        let volumeCredits = 0;
-        volumeCredits += Math.max(this.performance.audience - 30, 0);
-
-        if ("comedy" == this.play.type)
-            volumeCredits += Math.floor(this.performance.audience / 5);
-
-        return volumeCredits;
+        return super.volumeCredits + Math.floor(this.performance.audience / 5);
     }
 }
 
 function createPerfomanceCalculator(aPerfomance, aPlay) {
-    return new PerformanceCalculator(aPerfomance, aPlay);
+    switch(aPlay.type) {
+        case "tragedy" : return new TragedyCalculator(aPerfomance, aPlay);
+        case "comedy" : return new ComedyCalculator(aPerfomance, aPlay);
+    }
 }
 
 function createStatementData(invoice, plays) {
