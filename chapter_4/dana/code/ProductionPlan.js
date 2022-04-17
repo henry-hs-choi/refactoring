@@ -17,7 +17,7 @@ class Province {
     }
 
     get name() {return this._name};
-    get producer() {return this._producer.slice();}
+    get producers() {return this._producer.slice();}
     get totalProduction() {return this._totalProduction;}
     set totalProduction(arg) {this._totalProduction = arg;}
     get demand() {return this._demand;}
@@ -28,6 +28,7 @@ class Province {
     get shortfall() {
         return this._demand - this.totalProduction;
     }
+
     get profit() {
         return this.demandValue - this.demandCost;
     }
