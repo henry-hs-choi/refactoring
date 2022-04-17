@@ -138,6 +138,12 @@ describe('province', function () {
         assert.equal(asia.shortfall, -26);
         assert.equal(asia.profit, -10);
     })
+
+    it('emty string demand', function() { // 빈 수요입력란
+        asia.demand = "";
+        assert.equal(asia.shortfall, NaN);
+        assert.equal(asia.profit, NaN);
+    })
 });
 
 describe('no producers', function () { // 생산자가 없다
