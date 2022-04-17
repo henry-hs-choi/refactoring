@@ -9,12 +9,15 @@ function statement(invoice, plays) {
     const statementData = {}; // hashMap
     statementData.customer = invoice.customer; // 고객 데이터를 중간 데이터로 옮김
     statementData.performances = invoice.performances.map(enrichPerformance); // 공연 정보를 중간 데이터로 옮김
-    return renderPlainText(statementData, plays);
+    statementData.totalAmount = totalAmount(statementData);
+
+    return renderPlainText(statementData);
 
     function enrichPerformance(aPerfomance) {
         const result = Object.assign({}, aPerfomance); // 얕은 복사 수행
         result.play = playFor(result);
         result.amount = amountFor(result);
+        result.volumeCredits = volumeCreditsFor(result);
         return result;
     }
     
@@ -42,46 +45,7 @@ function statement(invoice, plays) {
             default:
                 throw new Error(`알 수 없는 장르 : ${aPerfomance.play.type}`);
         }
-
         return result;
-    }
-}
-
-function renderPlainText(data, plays) {
-    let result = `청구내역 (고객명: ${data.customer})\n`;
-
-    for (let perf of data.performances) {
-        result += ` ${perf.play.name}: ${usd(perf.amount)} (${perf.audience}석)\n`;
-    }
-
-    result += `총액: ${usd(totalAmount())}\n`;
-    result += `적립 포인트: ${totalVolumeCredits()}\n`;
-
-    return result;
-
-    function totalAmount() {
-        let result = 0;
-        for (let perf of data.performances) {
-            result += perf.amount;
-        }
-
-        return result;
-    }
-
-    function totalVolumeCredits() {
-        let result = 0;
-        for (let perf of data.performances) {
-            result += volumeCreditsFor(perf);
-        }
-
-        return result;
-    }
-
-    function usd(aNumber) {
-        return new Intl.NumberFormat("en-us", {
-            style: "currency", currency: "USD",
-            minimumFractionDigits: 2
-        }).format(aNumber / 100);
     }
 
     function volumeCreditsFor(aPerfomance) {
@@ -92,6 +56,44 @@ function renderPlainText(data, plays) {
             volumeCredits += Math.floor(aPerfomance.audience / 5);
 
         return volumeCredits;
+    }
+    
+    function totalAmount(data) {
+        let result = 0;
+        for (let perf of data.performances) {
+            result += perf.amount;
+        }
+
+        return result;
+    }
+}
+
+function renderPlainText(data) {
+    let result = `청구내역 (고객명: ${data.customer})\n`;
+
+    for (let perf of data.performances) {
+        result += ` ${perf.play.name}: ${usd(perf.amount)} (${perf.audience}석)\n`;
+    }
+
+    result += `총액: ${usd(data.totalAmount)}\n`;
+    result += `적립 포인트: ${totalVolumeCredits()}\n`;
+
+    return result;
+
+    function totalVolumeCredits() {
+        let result = 0;
+        for (let perf of data.performances) {
+            result += perf.volumeCredits;
+        }
+
+        return result;
+    }
+
+    function usd(aNumber) {
+        return new Intl.NumberFormat("en-us", {
+            style: "currency", currency: "USD",
+            minimumFractionDigits: 2
+        }).format(aNumber / 100);
     }
 }
 
