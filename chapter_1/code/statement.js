@@ -2,23 +2,22 @@
 const invoices = require("./invoices.json");
 const plays = require("./plays.json");
 
-
-console.log(plays);
-
 // ES5+
 // import ~ from "./invoices.json";
 
 function statement(invoice, plays) {
 
+    console.log(invoice);
+
     let totalAmount = 0;
     let volumeCredits = 0;
-    let result = '청구내역 (고객명: ${invocide.customer})\n';
+    let result = `청구내역 (고객명: ${invoice.customer})\n`;
 
     for (let perf of invoice.performances) {
-        volumeCredits = volumeCreditsFor(perf);
+        volumeCredits += volumeCreditsFor(perf);
 
         //청구 내역을 출력한다.
-        result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${playFor(perf).audience}석\n`;
+        result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience}석)\n`;
         totalAmount += amountFor(perf);
     }
 
@@ -74,7 +73,7 @@ function playFor(aPerformance) {
 }
 
 function main() {
-    statement(invoices[0], plays);
+    console.log(statement(invoices[0], plays));
 }
 
 main();
