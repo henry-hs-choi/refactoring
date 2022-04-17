@@ -128,6 +128,25 @@ describe('province', function () {
         assert.equal(asia.shortfall).equal(-6);
         assert.equal(asia.profit).equal(292);
     })
+});
 
+describe('no producers', function () { // 생산자가 없다
+    let noProducers;
+    beforeEach(function() {
+        const data = {
+            name: "No Producers",
+            producers: [],
+            demand: 30,
+            price: 20
+        };
+        noProducers = new Province(data);
+    });
 
+    it('shortfall', function () {
+        assert.equal(noProducers.shortfall, 30);
+    });
+
+    it('profit', function() {
+        assert.equal(noProducers.profit, 0);
+    })
 });
