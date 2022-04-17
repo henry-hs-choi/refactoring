@@ -38,6 +38,10 @@ class PerformanceCalculator {
     }
 }
 
+function createPerfomanceCalculator(aPerfomance, aPlay) {
+    return new PerformanceCalculator(aPerfomance, aPlay);
+}
+
 function createStatementData(invoice, plays) {
     const statementData = {}; // hashMap
     statementData.customer = invoice.customer; // 고객 데이터를 중간 데이터로 옮김
@@ -47,7 +51,7 @@ function createStatementData(invoice, plays) {
     return statementData;
 
     function enrichPerformance(aPerfomance) {
-        const calculator = new PerformanceCalculator(aPerfomance, playFor(aPerfomance));
+        const calculator = createPerfomanceCalculator(aPerfomance, playFor(aPerfomance));
         const result = Object.assign({}, aPerfomance); // 얕은 복사 수행
         result.play = calculator.play;
         result.amount = calculator.amount;
