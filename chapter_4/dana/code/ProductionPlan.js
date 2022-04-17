@@ -166,3 +166,16 @@ describe('no producers', function () { // 생산자가 없다
         assert.equal(noProducers.profit, 0);
     })
 });
+
+describe('string for producers', function () { // 생산자 수 필드에 문자열을 대입한다.
+    it('', function() {
+        const data = {
+            name: "String producers",
+            producers: "",
+            demand: 30,
+            price: 20
+        };
+        const prov = new Province(data);
+        assert(prov.shortfall).equal(0);
+    })
+});
