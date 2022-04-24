@@ -8,11 +8,11 @@ function printOwing(invoice) {
 }
 
 function calculateOutstanding(invoice) { //추출할 코드 복사
-    let outstanding = 0; 
+    let result = 0; 
     for (const o of invoice.orders) {
-        outstanding += o.amount;
+        result += o.amount;
     }
-    return outstanding; //수정된 값 반환
+    return result; //수정된 값 반환
 }
 
 function recordDueDate(invoice) {
