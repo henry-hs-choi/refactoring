@@ -10,13 +10,9 @@ const base = (baseRate(aReading.month, aReading.year) * aReading.quantity);
 const taxableCharge = Math.max(0, base - taxThreshold(aReading.year));
 
 // client 3
-const aReading = acquireReading();
-const baseChargeAmount = calculateBaseCharge(aReading);
-
-function calculateBaseCharge(aReading) {
-    // 기본 요금 계산
-    return baseCharge = baseRate(aReading.month, aReading.year) * aReading.quantity;
-}
+const rawReading = acquireReading();
+const aReading = new Reading(rawReading);
+const baseChargeAmount = aReading.calculateBaseCharge(aReading);
 
 class Reading {
     constructor(data) {
@@ -28,4 +24,8 @@ class Reading {
     get customer() {return this._customer;}
     get quantity() {return this._month;}
     get year()     {return this._year;}
+
+    get calculateBaseCharge() {
+        return baseRate(aReading.month, aReading.year) * aReading.quantity;
+    }
 }
