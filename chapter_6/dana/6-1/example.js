@@ -8,18 +8,21 @@ function printOwing(invoice) {
         outstanding += o.amount;
     }
 
-    // 마감일(dueDate)을 기록한다.
+    recordDueDate(invoice); // 마감일 설정 로직을 함수로 추출
+    printDetails(invoice, outstanding);
+
+}
+
+function recordDueDate(invoice) {
     const today = Clock.today;
     invoice.dueDate = new Date(today.getFullYear(), today.getMonth(),
-                                today.getDate() + 30);
+        today.getDate() + 30);
+}
 
-    printDetails();
-
-    function printDetails() { // 중첩 함수로 추출 -> printOwing에 정의된 모든 변수에 접근 가능
-        console.log(`고객명: ${invoice.customer}`);
-        console.log(`채무액: ${outstanding}`);
-        console.log(`마감일: ${invoice.dueDate.toLocaleDateString()}`);
-    }
+function printDetails(invoice, outstanding) { // 지역 변수를 매개변수로 전달
+    console.log(`고객명: ${invoice.customer}`);
+    console.log(`채무액: ${outstanding}`);
+    console.log(`마감일: ${invoice.dueDate.toLocaleDateString()}`);
 }
 
 function printBanner() {
