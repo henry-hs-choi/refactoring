@@ -29,5 +29,4 @@ class NumberRange {
     get min() {return this._data.min;}
     get max() {return this._data.max;}
     contains(arg) {return (arg >= this.min && arg <= this.max);}
-
 }
