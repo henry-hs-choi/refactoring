@@ -1,8 +1,7 @@
 const newEnglanders = someCustomers.filter(c => inNewEngland(c));
 
 function inNewEngland(aCustomer) {
-    const stateCode = aCustomer.address.state;
-    return xxNEWinEngland(stateCode);
+    return xxNEWinEngland(aCustomer.address.state);
 }
 
 function xxNEWinEngland(stateCode) {
