@@ -1,18 +1,14 @@
 reading = {customer: "ivan", quantity: 10, month: 5, year: 2017};
 
 // client 1
-const aReading = acquireReading();
-const baseCharge = baseRate(aReading.month, aReading.year) * aReading.quantity;
-
-// client 2
-const aReading = acquireReading();
-const base = (baseRate(aReading.month, aReading.year) * aReading.quantity);
-const taxableCharge = Math.max(0, base - taxThreshold(aReading.year));
+const rawReading = acquireReading();
+const aReading = new Reading(rawReading);
+const baseCharge = aReading.baseCharge;
 
 // client 3
 const rawReading = acquireReading();
 const aReading = new Reading(rawReading);
-const baseChargeAmount = aReading.calculateBaseCharge(aReading);
+const taxableCharge = aReading.taxableCharge;
 
 class Reading {
     constructor(data) {
@@ -25,7 +21,11 @@ class Reading {
     get quantity() {return this._month;}
     get year()     {return this._year;}
 
-    get calculateBaseCharge() {
+    get baseCharge() {
         return baseRate(aReading.month, aReading.year) * aReading.quantity;
+    }
+
+    get taxableCharge() {
+        return Math.max(0, this.baseCharge - taxThreshold(this.year));   
     }
 }
