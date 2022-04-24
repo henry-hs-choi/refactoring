@@ -1,10 +1,6 @@
 function reportLines(aCustomer) {
     const lines = [];
-    gatherCustomerDate(lines, aCustomer);
+    lines.push(["name", aCustomer.name]);
+    lines.push(["location", aCustomer.location]);
     return lines;
-}
-
-function gatherCustomerDate(out, aCustomer) {
-    out.push(["name", aCustomer.name]);
-    out.push(["location", aCustomer.loation]);
 }
