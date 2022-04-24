@@ -8,9 +8,9 @@ const station = { name: "ZXB1",
                   ]
                 };
 
-function readingsOutsideRange(station, min, range) {
+function readingsOutsideRange(station, range) {
     return station.readings
-        .filter(r => r.temp < min || r.temp > range.max);
+        .filter(r => !range.contains(r.temp));
 }
 
 // 매개변수 추가
@@ -18,10 +18,7 @@ const range = new NumberRange(operatingPlan.temperatureFloor,    // 최저 온�
                               operatingPlan.temperatureCeiling);
 
 // 호출문
-alerts = readingsOutsideRange(station, 
-                              operatingPlan.temperatureFloor,    // 최저 온도
-                              range,
-                              null); // 최고 온도
+alerts = readingsOutsideRange(station, range);
 
 // 값 객체 생성
 class NumberRange {
@@ -31,4 +28,6 @@ class NumberRange {
 
     get min() {return this._data.min;}
     get max() {return this._data.max;}
+    contains(arg) {return (arg >= this.min && arg <= this.max);}
+
 }
