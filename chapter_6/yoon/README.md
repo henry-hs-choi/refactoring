@@ -1,1 +1,345 @@
-# todo - 챕터 내용 정리
+# 챕터 내용 정리
+
+## 6장 - 기본적인 리팩터링
+
+### 6.1 함수 추출하기 (Extract Function)
+
+```javascript
+function printOwing(invoice) {
+    printBanner();
+    let outstanding = calculateOutstanding();
+
+    // 세부 사항 출력
+    console.log('고객명 : ${invoice.customer}');
+    console.log('채무액 : ${outstanding}');
+}
+```
+▼
+```javascript
+function printOwing(invoice) {
+    printBanner();
+    let outstanding = calculateOutstanding();
+
+    printDetails(outstanding); // 세부 사항 출력
+    
+    function printDetails(invoice, outstanding) {
+        console.log('고객명 : ${invoice.customer}');
+        console.log('채무액 : ${outstanding}');
+        console.log('마감일 : ${invoice.dueDate.toLocaleDateString()}');
+    }
+}
+```
+
+- 함수 추출의 기준 : '목적과 구현을 분리'
+- 이름을 잘 지어야 한다!
+
+> 함수를 짧게 만들면 함수 호출이 많아져서 성능이 느려질까 걱정 (...).
+> 함수가 짧으면 캐싱하기가 더 쉽기 때문에 컴파일러가 최적화하는 데 유리할 때가 많다. (...)
+> "최적화를 할 때는 다음 두 규칙을 따르기 바란다. 첫 번째, 하지 마라. 두 번째(전문가 한정), 아직 하지 마라."
+
+#### 절차
+
+1. 함수를 만들고 목적을 드러내는 이름 붙이기 ('어떻게' X '무엇을' O)
+   - 이름을 떠올리기 어렵다면 함수로 추출하지 말라는 신호일수도 있음
+2. 추출할 코드를 복사! 원본 함수 → 새 함수
+3. 원본 함수의 지역 변수를 참조하거나, 유효범위를 벗어나는 변수는 없는지 체크. 있을 경우 매개변수로 전달!
+   - 중첩 함수로 추출할 때는 문제 없음
+   - 추출한 코드 안에서 값이 바뀌는 변수는 주의하자
+     - 해당 변수가 하나 뿐일 경우 → 추출한 코드를 질의 함수로 취급해서 그 반환 값을 해당 변수에 대입하기
+     - 너무 많은 경우 → 함수 추출 X 변수 쪼개기(9.1), 임시 변수를 질의 함수로 바꾸기(7.4) 이후 함수 추출 시도
+4. 컴파일 (컴파일 에러 찾기)
+5. 원본 함수의 코드를 새 함수 호출로 변경
+6. 테스트
+7. 다른 코드에도 이 함수를 적용할 수 있을지 검토 (인라인코드를 함수 호출로 바꾸기(8.5))
+
+#### 예시
+##### 리팩터링 전
+```javascript
+function printOwing(invoice) {
+    let outstanding = 0;
+
+    console.log("************");
+    console.log("**고객 체무**");
+    console.log("************");
+
+    // 미해결 채무(outstanding)를 계산한다
+    for (const o of invoice.orders) {
+        outstanding += o.amount;
+    }
+
+    // 마감일(dueDate)을 기록한다.
+    const today = Clock.today;
+    invoice.dueDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
+
+    // 세부 사항을 출력한다.
+    console.log('고객명 : ${invoice.customer}');
+    console.log('채무액 : ${outstanding}');
+    console.log('마감일 : ${invoice.dueDate.toLocaleDateString()}');
+}
+```
+##### 유효범위를 벗어나는 변수가 없을 때
+```javascript
+function printOwing(invoice) {
+    let outstanding = 0;
+
+    printBanner(); // 배너 출력 로직을 함수로 추출
+
+    // 동일한 코드 ...
+
+    printDetails(); // 세부 사항 출력 로직을 함수로 추출
+
+    function printDetails() {
+        console.log('고객명 : ${invoice.customer}');
+        console.log('채무액 : ${outstanding}');
+        console.log('마감일 : ${invoice.dueDate.toLocaleDateString()}');
+    }
+}
+
+function printBanner() {
+    console.log("************");
+    console.log("**고객 체무**");
+    console.log("************");
+}
+```
+- 중첩 함수를 지원하지 않을 경우에는 원본함수에서만 접근할 수 있는 변수들에 특별히 신경 써야 함
+
+##### 지역 변수를 사용할 때
+```javascript
+function printOwing(invoice) {
+    let outstanding = 0;
+
+    printBanner();
+
+    // 동일한 코드 ...
+
+    printDetails(invoice, outstanding); // 앞의 예시와 다르게 지역 변수를 매개변수로 전달함
+}
+
+function printDetails(invoice, outstanding) {
+    console.log('고객명 : ${invoice.customer}');
+    console.log('채무액 : ${outstanding}');
+    console.log('마감일 : ${invoice.dueDate.toLocaleDateString()}');
+}
+```
+##### 지역 변수의 값을 변경할 때
+- 매개변수에 값을 대입하는 코드가 있을 경우 → 그 변수를 쪼개서(9.1) 임시 변수를 새로 하나 만들고, 그 변수에 대입하게 해야한다.
+- 변수가 초기화 되는 지점과 실제로 사용되는 지점이 떨어져 있을 경우 → 문장 슬라이드하기(8.6)
+- 변수가 추출한 함수 밖에서 사용될 경우 → 새 값을 반환
+```javascript
+function printOwing(invoice) { 
+    printBanner();
+
+    // let outstanding = 0;     // 1. 선언문 슬라이드
+    const outstanding = calculateOutstanding(invoice) // 5. 코드 변경 (원본 코드 → 새 함수 호출)
+    recordDueDate(invoice);
+
+    printDetails(invoice, outstanding);
+}
+
+function calculateOutstanding(invoice){ // 2. 코드 복사하기 & 3. 변경된 값 반환하도록 수정하기 & 4. 컴파일하기
+    let outstanding = 0;
+    for (const o of invoice.orders) {
+        outstanding += o.amount;
+    }
+    return outstanding;
+}
+// 동일한 코드 ...
+```
+- 값을 반환할 변수가 여러 개 일 경우
+  - 각각을 반환하는 함수 여러 개로 만들기
+  - 값들을 레코드로 묶어서 반환하기 (이것보다는 아래 방법이 더 좋음)
+  - 임시 변수를 질의 함수로 바꾸거나(7.4) 변수를 쪼개기(9.1)
+
+### 6.2 함수 인라인하기 (Inline Function)
+
+```javascript
+function getRating(driver) {
+    return moreThanFiveLateDeliveries(driver) ? 2 : 1;
+}
+
+function moreThanFiveLateDeliveries(driver) {
+    return driver.numberOfLateDeliveries > 5;
+}
+```
+▼
+```javascript
+function getRating(driver) {
+    return (driver.numberOfLateDeliveries > 5) ? 2 : 1;
+}
+```
+- 함수 본문이 명확할 경우 간접 호출은 쓸데 없고 거슬림
+- 간접 호출을 너무 과하게 쓰면 다른 함수로 단순히 위임하기만 하는 함수들이 너무 많아져서 관계가 복잡하게 얽힘
+
+#### 절차
+1. 다형 메서드(polymorphic)인지 확인
+   - 서브클래스에서 오버라이드하는 메서드는 인라인 X
+2. 해당 함수를 호출하는 곳을 모두 찾는다
+3. 각 호출문을 함수의 본문으로 교체
+4. 하나씩 교체하면서 테스트
+   - 모두 한 번에 처리할 필요 없고, 틈틈이 처리해도 된다!
+5. 원본 함수 삭제
+
+#### 예시
+##### 단순 덮어쓰기 & 변수 명 맞춰주기
+```javascript
+function getRating(aDriver) {
+    return moreThanFiveLateDeliveries(aDriver) ? 2 : 1;
+}
+
+function moreThanFiveLateDeliveries(driver) {
+    return driver.numberOfLateDeliveries > 5;
+}
+```
+▼
+```javascript
+function getRating(aDriver) {
+    return aDriver.numberOfLateDeliveries > 5 ? 2 : 1;
+}
+```
+##### 수정 사항이 더 많을 경우
+```javascript
+function reportLines(aCustomer) {
+    const lines = [];
+    gatherCustomerData(lines, aCustomer);
+    return lines
+}
+
+function gatherCustomerData(out, aCustomer) {
+    out.push(["name", acustomer.name]);
+    out.push(["location", acustomer.location]);
+}
+```
+▼
+```javascript
+function reportLines(aCustomer) {
+    const lines = [];
+    lines.push(["name", acustomer.name]); // 1. 한 줄씩 옮긴다
+    lines.push(["location", acustomer.location]); // 2. 한 줄씩 옮긴다
+    gatherCustomerData(lines, aCustomer);
+    return lines
+}
+
+function gatherCustomerData(out, aCustomer) {
+    // out.push(["name", acustomer.name]); // 1
+    // out.push(["location", acustomer.location]); // 2
+}
+```
+- 항상 단계를 잘게 나눠서 처리하자!
+
+### 6.3 변수 추출하기 (Extract Variable)
+```javascript
+return order.quantity * order.itemPrice - 
+    Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
+    Math.min(order.quantity * order.itemPrice * 0.1, 100);
+```
+▼
+```javascript
+const basePrice = order.quantity * order.itemPrice;
+const quantityDiscount = Math.max(0, order.quantity - 500)
+                        * order.itemPrice * 0.05;
+const shipping = Math.min(basePrice * 0.1, 100);
+return basePrice - quantityDiscount + shipping
+```
+- 표현식이 너무 복잡해서 이해하기 어려울 때!
+  - 변수 추출 → 복잡한 로직을 구성하는 단계마다 이름 붙일 수 있음
+    - 코드의 목적이 명료하게 드러남
+    - 디버깅이 쉬워짐
+- 변수 추출 = 표현식에 이름 붙이기
+  - 이름이 함수 안에서만 의미 있을 경우 → 변수 추출
+  - 이름이 넓은 문맥(함수 밖)에서도 의미 있을 경우 → 대부분 함수 추출
+    - 간단히 처리할 수 있을 경우 → 즉시 적용(함수 추출하기(6.1))
+    - 변경할 코드가 많을 경우 → 임시 변수를 질의 함수로 바꾸기(7.4)
+#### 절차
+1. 추출하려는 표현식에 부작용이 있는지 확인
+2. 불변 변수를 선언하고, 표현식을 복사해서 대입
+3. 원본 표현식을 새로 만든 변수로 교체
+4. 테스트
+5. 표현식을 여러 곳에서 사용할 경우, 각각을 교체
+   - 하나 교체할 때마다 테스트!
+#### 예시
+##### 간단한 계산식
+```javascript
+function price(order) {
+    // 가격(price) = 기본 가격 - 수량 할인 + 배송비
+    return order.quantity * order.itemPrice - 
+        Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
+        Math.min(order.quantity * order.itemPrice * 0.1, 100);
+}
+```
+▼
+```javascript
+function price(order) {
+    // 4. 기존에 있었던 불필요 주석 지우기
+    const basePrice = order.quantity * order.itemPrice; // 1. 하나씩 확인하고 적용하기
+    const quantityDiscount = Math.max(0, order.quantity - 500)
+                        * order.itemPrice * 0.05; // 2. 하나씩 확인하고 적용하기
+    const shipping = Math.min(basePrice * 0.1, 100); // 3. 하나씩 확인하고 적용하기
+    return basePrice - quantityDiscount + shipping
+}
+```
+##### 클래스 문맥에서 적용하기
+```javascript
+class Order {
+    constructor(aRecord) {
+        this._data = aRecord;
+    }
+
+    get quantity() {return this._data.quantity;}
+    get itemPrice() {return this._data.itemPrice;}
+    get Price() {
+        return order.quantity * order.itemPrice - 
+            Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
+            Math.min(order.quantity * order.itemPrice * 0.1, 100);
+    }
+}
+```
+▼
+```javascript
+class Order {
+    constructor(aRecord) {
+        this._data = aRecord;
+    }
+
+    get quantity() {return this._data.quantity;}
+    get itemPrice() {return this._data.itemPrice;}
+    get Price() {
+        return this.basePrice - this.quantityDiscount + this.shipping;
+            Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
+            Math.min(order.quantity * order.itemPrice * 0.1, 100);
+    }
+
+    get basePrice() {return this.quantity * this.itemPrice;} // 1. 하나씩 확인하고 적용하기
+    get quantityDiscount {return Math.max(0, this.quantity - 500)
+                        * this.itemPrice * 0.05;}  // 2. 하나씩 확인하고 적용하기
+    get shipping {return Math.min(this.basePrice * 0.1, 100);} // 3. 하나씩 확인하고 적용하기
+}
+```
+
+### 6.4 변수 인라인하기 (Inline Variable)
+```javascript
+let basePrice = anOrder.basePrice;
+return (basePrice > 1000);
+```
+▼
+```javascript
+return anOrder.basePrice > 1000;
+```
+- 변수가 원래 표현식과 별 차이 없을 때 적용
+- 변수가 주변 코드를 리팩터링 하는 데 방해가 될 때 적용
+#### 절차
+1. 원본 대입문의 표현식에서 부작용이 있는지 확인
+2. 변수가 불변으로 선언된게 아니라면 불변으로 만든 후 테스트
+   - 변수에 값이 단 한번만 대입되는게 맞는지 확인할 수 있음
+3. 해당 변수를 사용하는 코드 → 표현식 코드로 변경
+4. 테스트
+5. 3~4 반복
+6. 변수 선언문 & 대입문 삭제
+7. 테스트
+
+### 6.5 함수 선언 바꾸기 (Change Function Declaration)
+```javascript
+
+```
+▼
+```javascript
+```
