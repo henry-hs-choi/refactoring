@@ -808,6 +808,3 @@ function applyShipping(priceData, shippingMethod) {
     return price;
 }
 ```
-▼
-```javascript
-```
