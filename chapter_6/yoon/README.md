@@ -338,6 +338,133 @@ return anOrder.basePrice > 1000;
 
 ### 6.5 함수 선언 바꾸기 (Change Function Declaration)
 ```javascript
+function circum(radius) {...}
+```
+▼
+```javascript
+function circumference(radius) {...}
+```
+- 함수 이름
+  - 주석을 이용해 함수의 목적을 설명하다 보면 적절한 함수 이름을 찾을 수 있음
+- 함수 매개변수
+  - 함수를 사용하는 문맥을 설정함
+  - 커플링 ↔ 캡슐화 Trade-off
+
+#### 절차
+- 해당 리팩터링은 경우에 따라 더 적합한 적용 방법이 나뉨
+  - 간단하게 적용 할 수 있는 경우 → 간단한 절차
+  - 점진적으로 적용 해야 하는 경우 → 마이그레이션 절차
+ 
+##### 1. 간단한 절차
+1. (매개변수를 제거할 경우) 함수 본문에서 해당 매개변수를 참조하는 곳이 있는지 확인
+2. 메서드 선언을 바꿈
+3. 기존 메서드 선언을 참조하는 부분을 찾아서 모두 수정
+4. 테스트
+
+##### 2. 마이그레이션 절차
+1. 이후 단계를 수월하게 하기 위해 함수의 본문을 적절히 리팩터링
+2. 함수 본문을 새로운 함수로 추출(6.1)
+3. (매개변수 추가 필요시) '간단한 절차' 적용
+4. 테스트
+5. 기존 함수를 인라인(6.2)
+6. 이름을 적절하게 수정
+7. 테스트
+
+#### 예시
+##### 매개변수 추가하기
+```javascript
+addReservation(customer) {
+    this._reservations.push(customer);
+}
+```
+▼
+```javascript
+addReservation(customer) {
+    this.zz_addReservation(customer, false); 
+}
+zz_addReservation(customer, isPriority) { // 2. 함수 추출 / 3. 매개변수 추가
+    assert(isPriority === true || isPriority === false); // 4. 테스트
+    this._reservations.push(customer);
+}
+// 5. 기존 함수를 인라인
+// 6. 함수 이름 변경
+```
+##### 매개변수를 속성으로 바꾸기
+```javascript
+const newEnglanders = someCustomers.filter(c => inNewEngland(c));
+function inNewEngland(aCustomer) {
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(aCustomer.address.state);
+}
+```
+▼
+```javascript
+const newEnglanders = someCustomers.filter(c => inNewEngland(c));
+function inNewEngland(aCustomer) {
+    const stateCode = aCustomer.address.state; // 1. 함수 본문 리팩터링
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(stateCode);
+}
+```
+▼
+```javascript
+const newEnglanders = someCustomers.filter(c => inNewEngland(c));
+function inNewEngland(aCustomer) {
+    const stateCode = aCustomer.address.state;
+    return xxNewinNewEngland(stateCode);
+}
+function xxNewinNewEngland(stateCode) { // 2. 함수 추출하기(6.1)
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(stateCode);
+}
+```
+▼
+```javascript
+const newEnglanders = someCustomers.filter(c => inNewEngland(c));
+function inNewEngland(aCustomer) {
+    return xxNewinNewEngland(aCustomer.address.state); // 변수 인라인하기(6.4)
+}
+function xxNewinNewEngland(stateCode) { 
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(stateCode);
+}
+```
+▼
+```javascript
+const newEnglanders = someCustomers.filter(c => xxNewinNewEngland(c.address.state)); // 5. 함수 인라인하기(6.2)
+function xxNewinNewEngland(stateCode) { 
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(stateCode);
+}
+```
+```javascript
+const newEnglanders = someCustomers.filter(c => inNewEngland(c.address.state));
+function inNewEngland(stateCode) { // 6. 함수 선언 바꾸기
+    return ["MA", "CT", "ME", "VT", "NH", "RI"].includes(stateCode);
+}
+```
+### 6.6 변수 캡슐화하기 (Encapsulate Variable)
+```javascript
+let defaultOwner = {firstName: "마틴", lastName: "파울러"};
+```
+▼
+```javascript
+let defaultOwnerData = {firstName: "마틴", lastName: "파울러"};
+export function defaultOwner()          {return defaultOwnerData;}
+export function setDefaultOwner(arg)    {defaultOwnerData = arg;}
+```
+- 함수가 데이터보다 다루기 쉬움
+  - 데이터는 참조하는 모든 부분을 한 번에 바꿔야만 코드가 제대로 작동함 (전역 데이터가 문제인 이유)
+- 데이터를 함수로 캡슐화하면, '데이터 재구성' 대신 '함수 재구성'으로 더 쉽게 해결 할 수 있음
+- 데이터를 사용하는 곳을 쉽게 찾아서 변경 전 검증, 변경 후 로직 추가 등이 쉬워짐
+- 불변 데이터는 굳이 캡슐화를 안해도 됨
+#### 절차
+1. 변수 접근 / 갱신을 전담하는 캡슐화 함수 생성
+2. 정적 검사 수행
+3. 변수를 직접 참조하는 코드 → 캡슐화 함수 호출 코드로 변경 / 테스트
+4. 변수의 접근 범위 제한
+   - 제한 할 수 없는 경우, 변수 이름을 바꿔서 테스트하면 참조하는 곳을 찾기 쉬움 
+5. 테스트
+6. 변수 값이 레코드일 경우 → 레코드 캡슐화하기(7.1) 고려
+
+
+### 6.7 
+```javascript
 
 ```
 ▼
