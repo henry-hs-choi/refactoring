@@ -461,9 +461,198 @@ export function setDefaultOwner(arg)    {defaultOwnerData = arg;}
    - 제한 할 수 없는 경우, 변수 이름을 바꿔서 테스트하면 참조하는 곳을 찾기 쉬움 
 5. 테스트
 6. 변수 값이 레코드일 경우 → 레코드 캡슐화하기(7.1) 고려
+#### 예시
+##### 간단한 기본 캡슐화
+```javascript
+let defaultOwner = {firstName: "마틴", lastName: "파울러"}; // 전역 변수
+spaceship.owner = defaultOwner; // 참조하는 코드
+defaultOwner = {firstName: "레베카", lastName: "파슨스"}; // 갱신하는 코드
+```
+▼
+```javascript
+let defaultOwner = {firstName: "마틴", lastName: "파울러"};
+function getDefaultOwner()       {return defaultOwner;} // 1. 읽고 쓰는 함수 정의
+function setDefaultOwner(arg)    {defaultOwner = arg;}
+spaceship.owner = getDefaultOwner(); // 3. 참조하는 코드 → 게터 함수 호출로 변경 후 테스트
+setDefaultOwner({firstName: "레베카", lastName: "파슨스"}); // 3. 대입하는 코드 → 세터 함수 호출로 변경 후 테스트
+```
+▼
+```javascript
+// 4. 다른 파일로 옮김. 변수의 가시 범위 제한
+let defaultOwner = {firstName: "마틴", lastName: "파울러"};
+export function getDefaultOwner()       {return defaultOwner;}
+export function setDefaultOwner(arg)    {defaultOwner = arg;}
+```
+- 데이터의 접근이나 구조 자체를 다시 대입하는 행위 제어 할 수 있음
+- 필드 값을 변경하는 일은 제어할 수 없음
+##### 값 캡슐화
+- 변수에 담긴 내용을 변경하는 행위까지 제어하고 싶을 경우 사용
+```javascript   
+let defaultOwnerData = {firstName: "마틴", lastName: "파울러"};
+export function defaultOwner()          {return Object.assign({}, defaultOwnerData);} // 게터가 데이터의 복제본을 반환
+export function setDefaultOwner(arg)    {defaultOwnerData = arg;}
+```
+- 원본 데이터를 변경해야 할 수도 있는 경우 → 레코드 캡슐화하기(7.1)
+  
+▼
+```javascript
+let defaultOwnerData = {firstName: "마틴", lastName: "파울러"};
+export function defaultOwner()          {return new Person(defaultOwnerData);} // 게터가 새 레코드를 생성해서 반환
+export function setDefaultOwner(arg)    {defaultOwnerData = arg;}
 
+class Person {
+    constructor(data) {
+        this._lastName = data.lastName;
+        this._firstName = data.firstName;
+    }
+    get lastName() {return this._lastName;}
+    get firstName() {return this._firstName;}
+}
+```
+- defaultOwnerData의 속성을 다시 대입하는 연산을 무시할 수 있음?
 
-### 6.7 
+### 6.7 변수 이름 바꾸기 (Rename Variable)
+```javascript
+let a = height * width;
+```
+▼
+```javascript
+let area = height * width;
+```
+- 이름짓기 is very important!
+  - 한 줄짜리 람다식과 같이 맥락으로부터 변수의 목적을 정확히 알 수 있는 경우는 짧게 지어도 됨
+- 동적 타입 언어라면 이름의 앞 부분에 타입을 붙여도 됨
+#### 절차
+1. 폭넓게 쓰이는 변수일 경우 → 변수 캡슐화하기(6.6) 고려
+2. 해당 변수를 참조하는 곳을 모두 찾아서, 하나씩 변경
+   - 외부에 공개된 변수(다른 코드베이스에서 참조하는 변수)에는 적용 불가
+   - 변수 값이 변하지 않을 경우 → 다른 이름으로 복제본을 만들어서 점진적으로 변경
+3. 테스트
+#### 예시
+##### 간단한 변수 이름 바꾸기
+```javascript
+let tpHd = "untitled";
+result += '<h1>${tpHd}</h1>';
+tpHd = obj['articleTitle'];
+```
+▼
+```javascript
+let tpHd = "untitled";
+result += '<h1>${title()}</h1>';
+setTitle(obj['articleTitle']);
+
+function title() {return tpHd;} // 1. 변수 캡슐화하기
+function setTitle(arg) {tpHd = arg;}
+```
+▼
+```javascript
+let _title = "untitled";  // 2. 변수 이름 바꾸기
+result += '<h1>${title()}</h1>';
+setTitle(obj['articleTitle']);
+
+function title() {return _title;}
+function setTitle(arg) {_title = arg;}
+```
+##### 상수 이름 바꾸기
+```javascript
+const cpyNm = "애크미 구스베리";
+```
+▼
+```javascript
+const companyName = "애크미 구스베리"; // 1. 원본의 이름을 변경하고,
+const cpyNm = companyName; //  원본의 기존 이름과 같은 복제본 생성
+
+// 2. 참조하는 코드들을 점진적으로 변경
+```
+### 6.8 매개변수 객체 만들기 (Introduce Parameter Object)
+```javascript
+function amountInvoiced(startDate, endDate) {...}
+function amountReceived(startDate, endDate) {...}
+function amountOverdue(startDate, endDate) {...}
+```
+▼
+```javascript
+function amountInvoiced(aDateRange) {...}
+function amountReceived(aDateRange) {...}
+function amountOverdue(aDateRange) {...}
+```
+- 데이터 항목 여러 개가 함께 몰려다닐 경우 → 데이터 구조 하나로 모아주기
+- '매개변수 객체 만들기' 리팩터링은 코드 구조를 근본적으로 바꾸는 시작점이 됨 (새로운 데이터 구조를 활용)
+  - 데이터에 대한 함수 추출
+    - 공용함수 나열
+    - 클래스 생성
+#### 절차
+1. 적당한 데이터 구조가 없다면 새로 생성
+   - 클래스로 만들면 나중에 동작까지 함께 묶기 좋다.
+2. 테스트
+3. 함수 선언 바꾸기(6.5) (새 데이터 구조를 매개변수로 추가)
+4. 테스트
+5. 함수 호출 시 새로운 데이터 구조 인스턴스를 넘기도록 하나씩 수정 후 테스트
+6. 기존 매개변수를 사용하던 코드 → 새 데이터 구조의 원소를 사용하는 코드로 변경
+7. 기존 매개변수 제거 후 테스트
+#### 예시
+```javascript
+const station = {name: "ZB1",
+                readings: [
+                    {temp: 47, time: "2016-11-10 09:10"},
+                    {temp: 53, time: "2016-11-10 09:20"}
+                ]};
+function readingOutsideRange(station, min, max) {
+    return station.readings.filter(r => r.temp < min || r.temp > max);
+}
+alerts = readingOutsideRange(station, operationPlan.temperatureFloor, operationPlan.temperatureCeiling);
+```
+▼
+```javascript
+const station = {name: "ZB1",
+                readings: [
+                    {temp: 47, time: "2016-11-10 09:10"},
+                    {temp: 53, time: "2016-11-10 09:20"}
+                ]};
+
+class NumberRange { // 1. 묶은 데이터를 표현하는 클래스 생성
+    constructor(min, max) {
+        this._data = {min: min, max: max};
+    }
+    get min() {return this._data.min;}
+    get max() {return this._data.max;}
+}
+
+function readingOutsideRange(station, min, max, range) { // 3. 함수 선언 바꾸기
+    return station.readings.filter(r => r.temp < min || r.temp > max);
+}
+alerts = readingOutsideRange(station, operationPlan.temperatureFloor, operationPlan.temperatureCeiling, null); // 매개변수 자리에 임시로 null 넣기
+```
+▼
+```javascript
+function readingOutsideRange(station, min, max, range) { // 6. 기존 매개변수를 사용하는 코드 하나씩 변경 후 테스트
+    return station.readings.filter(r => r.temp < range.min || r.temp > range.max);
+}
+alerts = readingOutsideRange(station, operationPlan.temperatureFloor, operationPlan.temperatureCeiling, range); // 5. 호출문 바꾸기
+```
+▼
+```javascript
+function readingOutsideRange(station, range) { // 7. 기존 매개변수 제거
+    return station.readings.filter(r => r.temp < range.min || r.temp > range.max);
+}
+alerts = readingOutsideRange(station, range);
+```
+▼
+```javascript
+function readingOutsideRange(station, range) { // 7. 기존 매개변수 제거
+    return station.readings.filter(r => !range.contains(r.temp));
+}
+class NumberRange { // 1. 묶은 데이터를 표현하는 클래스 생성
+    constructor(min, max) {
+        this._data = {min: min, max: max};
+    }
+    get min() {return this._data.min;}
+    get max() {return this._data.max;}
+    contains(arg) {return (arg >= this.min && arg <= this.max);} // 진정한 값 객체로 발전시키기 
+}
+
+```
+### 6.9
 ```javascript
 
 ```
