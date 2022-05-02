@@ -642,7 +642,7 @@ alerts = readingOutsideRange(station, range);
 function readingOutsideRange(station, range) { // 7. 기존 매개변수 제거
     return station.readings.filter(r => !range.contains(r.temp));
 }
-class NumberRange { // 1. 묶은 데이터를 표현하는 클래스 생성
+class NumberRange {
     constructor(min, max) {
         this._data = {min: min, max: max};
     }
@@ -652,9 +652,161 @@ class NumberRange { // 1. 묶은 데이터를 표현하는 클래스 생성
 }
 
 ```
-### 6.9
+### 6.9 여러 함수를 클래스로 묶기 (Combine Functions into Class)
 ```javascript
+function base(aReading) {...}
+function taxableCharge(aReading) {...}
+function calculateBaseCharge(aReading) {...}
+```
+▼
+```javascript
+class Reading {
+    base() {...}
+    taxableCharge() {...}
+    calculateBaseCharge() {...}
+}
+```
+- 공통 데이터를 중심으로 엮여 작동하는 함수 무리가 있을 경우 → 클래스 하나로 묶기를 고려
+  - 공통 환경을 더 명확하게 표현 가능
+  - 함수에 전달되는 인수를 줄여 객체 안에서 함수 호출을 간결하게 함
+  - 해당 객체에 대한 참조를 제공 가능
+- 클래스, 중첩 함수로 묶을 수 있음
+  - 중첩 함수는 테스트가 까다로움에 유의
 
+#### 절차
+1. 함수들이 공유하는 공통 데이터 레코드를 캡슐화(7.1)
+   - 데이터들이 레코드로 묶여 있지 않은 경우 → 매개변수 객체 만들기(6.8) 먼저 진행
+2. 함수들을 새 클래스로 옮기기(8.1)
+   - 공통 레코드의 멤버는 인수에서 제거
+3. 데이터를 조작하는 로직들을 함수로 추출(6.1), 새 클래스로 옮기기
+
+### 6.10 여러 함수를 변환 함수로 묶기 (Combine Functions into Transform)
+```javascript
+function base(aReading) {...}
+function taxablecharge(aReading) {...}
+```
+▼
+```javascript
+function enrichReading(argReading) {
+    const aReading = _.cloneDeep(argReading);
+    aReading.baseCharge = base(aReading);
+    aReading.taxablecharge = taxablecharge(aReading);
+    return aReading;
+}
+```
+- 데이터가 사용되는 곳마다 같은 도출 로직이 반복될 경우 → 모아두기
+  - 원본데이터를 입력 받아서 필요한 정보를 모두 도출하고, 각각을 출력 데이터의 필드에 넣어 반환
+- 이 리팩터링 대신 대신 여러 함수를 클래스로 묶기(6.9)로 처리해도 됨
+  - 원본 데이터가 코드 안에서 갱신될 때는 클래스로 묶는게 나음
+    - 원본 데이터가 변경 될 일이 있다면 일관성이 깨질 수 있음!
+
+#### 절차
+1. 레코드를 입력받아 값을 그대로 반환하는 변환 함수 생성
+   - 깊은 복사로 처리해야 함
+   - 변환 함수가 원본 레코드를 바꾸지 않는지 검사하는 테스트도 좋음
+2. 묶을 함수의 코드를 변환 함수로 옮기고, 처리 결과를 레코드의 새 필드로 기록. 클라이언트 코드가 해당 필드를 이용하도록 수정
+   - 로직이 복잡한 경우 → 함수 추출하기(6.1) 먼저 진행
+3. 테스트
+4. 2~3 반복
+
+### 6.11 단계 쪼개기 (Split Phase)
+```javascript
+const orderData = orderString.split(/\s+/);
+const productPrice = priceList[orderData[0].split("-")[1]];
+const orderPrice = parseInt(orderData[1]) * productPrice;
+```
+▼
+```javascript
+const orderRecord = parseOrder(order);
+const orderPrice = price(orderRecord, priceList);
+
+function parseOrder(aString) {
+    const values = aString.split(/\s+/);
+    return ({
+        productID: values[0].split("-")[1],
+        quantity: parseInt(values[1]),
+    });
+}
+function price(order, priceList) {
+    return order.quantity * priceList[order.productID];
+}
+```
+- 서로 다른 두 대상을 한꺼번에 다루는 코드 → 각각을 별개 모듈로 나누기
+  - 동작을 두 단계로 쪼개면 쉬움
+#### 절차
+1. 두 번째 단계에 해당하는 코드를 독립 함수로 추출
+2. 테스트
+3. 중간 데이터 구조를 만들고, 1번에서 추출한 함수의 인수로 추가
+4. 테스트
+5. 추출한 함수의 매개변수를 하나씩 검토하여, 첫 번째 단계에서 사용되는 것은 중간 데이터 구조로 옮긴 후 테스트
+   - 두 번째 단계에서 사용하면 안 되는 매개변수가 있을 경우 → 각 매개변수를 사용한 결과를 중간 데이터 구조의 필드로 추출한 후, 이 필드의 값을 설정하는 문장을 호출한 곳으로 옮김(8.4)
+6. 첫 번째 단계 코드를 함수로 추출(6.1), 중간 데이터 구조 반환
+   - 변환기(transformer) 객체로 추출해도 됨
+```javascript
+function priceOrder(product, quantity, shippingMethod) {
+    const basePrice = product.basePrice * quantity;
+    const discount = Math.max(quantity - product.discountThreshold, 0) * product.basePrice * product.discountRate;
+    const shippingPerCase = (basePrice > shippingMethod.discountThreshold) ? shippingMethod.discountedFee : shippingMethod.feePerCase;
+    const shippingCost = quantity * shippingPerCase;
+    const price = bsePrice - discount + shippingCost;
+    return price;
+}
+```
+단계 1. 상품 가격 계산
+단계 2. 배송비 계산
+▼
+```javascript
+function priceOrder(product, quantity, shippingMethod) {
+    const basePrice = product.basePrice * quantity;
+    const discount = Math.max(quantity - product.discountThreshold, 0) * product.basePrice * product.discountRate;
+    const price = applyShipping(basePrice, shippingMethod, quantity, discount);
+    return price;
+}
+
+function applyShipping(basePrice, shippingMethod, quantity, discount) { // 1. 두 번째 단계를 함수로 추출
+    const shippingPerCase = (basePrice > shippingMethod.discountThreshold) ? shippingMethod.discountedFee : shippingMethod.feePerCase;
+    const shippingCost = quantity * shippingPerCase;
+    const price = bsePrice - discount + shippingCost;
+    return price;
+}
+```
+▼
+```javascript
+function priceOrder(product, quantity, shippingMethod) {
+    const basePrice = product.basePrice * quantity;
+    const discount = Math.max(quantity - product.discountThreshold, 0) * product.basePrice * product.discountRate;
+    const priceData = {basePrice: basePrice, quantity: quantity, discount: discount}; // 3. 단계 간 데이터를 주고받을 중간 데이터 구조 생성
+    const price = applyShipping(priceData, shippingMethod); // 5. 첫 번째 단계에서 생성되는 인수는 중간 데이터 구조로 옮김
+    return price;
+}
+
+function applyShipping(priceData, shippingMethod) {
+    const shippingPerCase = (priceData.basePrice > shippingMethod.discountThreshold) ? shippingMethod.discountedFee : shippingMethod.feePerCase;
+    const shippingCost = priceData.quantity * shippingPerCase;
+    const price = priceData.basePrice - priceData.discount + shippingCost;
+    return price;
+}
+```
+▼
+```javascript
+function priceOrder(product, quantity, shippingMethod) {
+    const priceData = calculatePricingData(product, quantity);
+    const price = applyShipping(priceData, shippingMethod);
+    return price;
+}
+
+function calculatePricingData(product, quantity) { // 6. 첫 번째 단계를 함수로 추출, 중간 데이터 구조를 반환하게 함
+    const basePrice = product.basePrice * quantity;
+    const discount = Math.max(quantity - product.discountThreshold, 0) * product.basePrice * product.discountRate;
+    return {basePrice: basePrice, quantity: quantity, discount: discount};
+}
+
+function applyShipping(priceData, shippingMethod) {
+    const shippingPerCase = (priceData.basePrice > shippingMethod.discountThreshold) ? shippingMethod.discountedFee : shippingMethod.feePerCase;
+    const shippingCost = priceData.quantity * shippingPerCase;
+    const price = priceData.basePrice - priceData.discount + shippingCost;
+    return price;
+}
 ```
 ▼
 ```javascript
