@@ -427,6 +427,7 @@ class Order {
 }
 ```
 - 게터가 항목 자체가 아니라 항목의 문자열을 반환하게 되어버림 → 함수 이름을 변경할 필요성
+
 ▼
 ```javascript
 class Order {
@@ -441,7 +442,7 @@ highPriorityCount = orders.filter(o => "high" === o.priorityString
                             .length;
 ```
 
-### 7.3 임시 변수를 질의 함수로 바꾸기 (Replace Temp with Query)
+### 7.4 임시 변수를 질의 함수로 바꾸기 (Replace Temp with Query)
 ```javascript
 const basePrice = this._quantity * this._itemPrice;
 if (basePrice > 1000)
