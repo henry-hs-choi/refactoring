@@ -1,9 +1,9 @@
-function youngestAge() {
-    return Math.min(...people.map(p => p.age));
+function acquireDate(input) {
+    const lines = input.split("\n"); // 컬렉션
+    return lines
+        .slice(1)
+        .filter (line => line.trim() !== "")
+        .map    (line => line.split(","))
+        .filter (fields => record[1].trim() === "India")
+        .map    (fields => ({city: fields[0].trim(), phone: fields[2].trim()}));
 }
-
-function totalSalary() {
-    return people.reduce((total, p) => total + p.salary, 0);
-}
-
-return '최연소: %{youngestAge()}, 총 급여 : ${totalSalary()}';

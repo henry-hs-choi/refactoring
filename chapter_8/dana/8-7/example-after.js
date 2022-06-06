@@ -1,29 +1,13 @@
-class Customer {
-    constructor(name, discountRate) {
-        this._name = name;
-        this._setDiscountRate(discountRate);
-        this._contract = new CustomerContract(dateToday());
-    }
+let youngest = people[0] ? people[0].age : Infinity;
+let totalSalary = 0;
 
-    get discountRate() {return this._contract.discountRate;}
-    _setDiscountRate(aNumber) {this._contract.discountRate = aNumber;}
-    becomePreferred() {
-        this._setDiscountRate(this.discountRate + 0.03);
-        // other amazing thigs..
-    }
-
-    applyDiscount(amount) {
-        return amount.subtract(amount.multiply(this.discountRate));
-    }
+for (const p of people) {
+    if (p.age < youngest) youngest = p.age;
 }
 
-// discountRate field 옮기기
-class CustomerContract {
-    constructor(name, discountRate) {
-        this._name = name;
-        this._discountRate = discountRate
-    }
-
-    get discountRate() {return this._discountRate;}
-    set discountRate(arg) {this._discountRate = arg;}
+// 반복문 쪼개기
+for (const p of people) {
+    totalSalary += p.salary;
 }
+
+return '최연소: %{youngest}, 총 급여 : ${totalSalary}';

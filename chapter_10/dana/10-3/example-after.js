@@ -1,20 +1,17 @@
-/*
-if (summer())
-    charge = summerCharge();
-else
-    charge = regularCharge();
-*/
+function payAmount(employee) {
+    if(employee.isSeparated) { // 퇴사한 직원인가?
+        return {amount: 0, reasonCode: "SEP"};
+    }
 
-charge = summer() ? summerCharge() : regularCharge();
+    if (employee.isRetired) {
+        return {amount: 0, reasonCode: "RET"};
+    }
 
-function summer() {
-    return !aDate.isBefore(plan.summerStart) && !aDate.isAfter(plan.summerEnd);
+    // 급여 계산 로직
+    lorem.ipsum(dolor.sitAmet);
+    consectetur(adipiscing).elit();
+    sed.do.eiusmod = tempor.incididunt.ut(labore) && dolore(magna.aliqua);
+    ut.enim.ad(minim.veniam);
+    return someFinalComputation();
 }
 
-function summerCharge() {
-    return quantity * plan.summerRate;
-}
-
-function regularCharge() {
-    return quantity * plan.regularRate + plan.regularServiceCharge;
-}

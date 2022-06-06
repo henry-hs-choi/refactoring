@@ -1,25 +1,14 @@
-function trackSummary(points) {
-    const totalTime = calculateTime();
-    const totalDistance = calculateDistance();
-    const pace = totalTime / 60 / totalDistance;
-
-    return {
-        time: totalTime,
-        distance: totalDistance,
-        pace: pace
-    };
-
-    function calculateDistance() { // 총 거리 계산
-        let result = 0;
-
-        for (let i = 1 ; i < points.length ; i++) {
-            result += distance(points[i-1], points[i]);
-        }
-        return result;
+function distanceTravelled (scenario, time) {
+    let result;
+    let acc = scenario.primaryForce / scenario.mass; // 가속도(a) = 힘(F) / 질량(m)
+    let primaryTime = Math.min(time, scenario.delay);
+    result = 0.5 * acc * primaryTime * primaryTime; // 전파된 거리
+    let secondaryTime = time - scenario.delay;
+    if (secondaryTime > 0) { // 두 번째 힘을 반영해 다시 계산
+        let primaryVelocity = acc * scenario.delay;
+        acc = (scenario.primaryForce + scenario.secondaryForce) / scenario.mass;
+        result += primaryVelocity * secondaryTime
+                  + 0.5 * acc * secondaryTime * secondaryTime;
     }
-
-    function distance(p1, p2) { ... } // 두 지점의 거리 계산
-    function radians(degrees) { ... } // 라디안 값으로 변환
-    function calculateTime() { ... } // 총 시간 계산
+    return result;
 }
-

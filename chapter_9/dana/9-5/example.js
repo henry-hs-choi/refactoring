@@ -1,17 +1,17 @@
-class Person {
-    constructor() {
-        this._telephoneNumber = new TelephoneNumber();
+class Order {
+    constructor(data) {
+        this._number = data.number;
+        this._customer = new Customer(data.customer);
+        // 다른 데이터를 읽어 들인다.
     }
 
-    get officeAreaCode() {return this._telephoneNumber.areaCode;}
-    set officeAreaCode(arg) {this._telephoneNumber.areaCode = arg;}
-    get officeNumber() {return this._telephoneNumber.number;}
-    set officeNumber(arg) {this._telephoneNumber.number = arg;}
+    get customer() {return this._customer;}
 }
 
-class TelephoneNumber {
-    get areaCode() {return this._areaCode;}
-    set areaCode(arg) {this._areaCode = arg;}
-    get number() {return this._number;}
-    set number(arg) {this._number = arg;}
+class Customer {
+    constructor(id) {
+        this._id = id;
+    }
+
+    get id() {return this._id;}
 }

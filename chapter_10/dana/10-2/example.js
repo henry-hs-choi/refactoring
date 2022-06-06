@@ -1,5 +1,6 @@
-if (!aDate.isBefore(plan.summerStart) && !aDate.isAfter(plan.summerEnd))
-    charge = quantity * plan.summerRate;
-else
-    charge = quantity * plan.regularRate + plan.regularServiceCharge;
-
+function disabilityAmount(anEmployee) {
+    if (anEmployee.seniority < 2) return 0;
+    if (anEmployee.monthsDisabled > 12) return 0;
+    if (anEmployee.isPartTime) return 0;
+    // 장애 수단 계산
+}

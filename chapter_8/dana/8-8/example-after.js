@@ -1,13 +1,12 @@
-let youngest = people[0] ? people[0].age : Infinity;
-let totalSalary = 0;
+function acquireDate(input) {
+    const lines = input.split("\n"); // 컬렉션
+    const result = [];
+    const loopItems = lines
+        .slice(1)
+        .filter(line => line.trim() !== "")
+        .map(line => line.split(","))
+        .filter(record => record[1].trim() === "India")
+        .map(record => ({city: record[0].trim(), phone: record[2].trim()}));
 
-for (const p of people) {
-    if (p.age < youngest) youngest = p.age;
+    return result;
 }
-
-// 반복문 쪼개기
-for (const p of people) {
-    totalSalary += p.salary;
-}
-
-return '최연소: %{youngest}, 총 급여 : ${totalSalary}';

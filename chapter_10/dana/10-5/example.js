@@ -1,33 +1,33 @@
-function plumages(birds) {
-    return new Map(birds.map(b => [b.name, plumage(b)]));
+class Site {
+    get customer() {return this._customer;}
 }
 
-function speeds(birds) {
-    return new Map(birds.map(b => [b.name, airSpeedVelocity(b)]));
+class Customer {
+    get name() {...}
+    get billingPlan() {...}
+    set billingPlan() {...}
+    get paymentHistory() {...}
 }
 
-function plumage(bird) {
-    switch (bird.type) {
-    case '유럽 제비':
-        return "보통이다.";
-    case '아프리카 제비':
-        return (bird.numberOfCoconuts > 2) ? "지쳤다" : "보통이다";
-    case '노르웨이 파랑 앵무':
-        return (bird.voltage > 100) ? "그을렸다" : "예쁘다";
-    default:
-        return "알 수 없다.";
-    }
+class Client1 {
+    const aCustomer = site.customer;
+    // 웅앵웅
+    let customerName;
+    if (aCustomer === "미확인 고객") customerName = "거주자";
+    else customerName = aCustomer.name;
 }
 
-function airSpeedVelocity(bird) {
-    switch (bird.type) {
-    case '유럽 제비':
-        return 35;
-    case '아프리카 제비':
-        return 40 - 2 * bird.numberOfCoconuts;
-    case '노르웨이 파랑 앵무':
-        return (bird.isNailed) ? 0 : 10 + bird.voltage / 10;
-    default:
-        return null;
-    }
+class Client2 {
+    const plan = (aCustomer === "미확인 고객") ?
+        registry.billingPlans.basic
+        : aCustomer.billingPlan;
 }
+
+class Client3 {
+    if (aCustomer !== "미확인 고객") aCustomer.billingPlan = newPlan;
+}
+
+class Client4 {
+    const weeksDeliquent =  (aCustomer !== "미확인 고객") ? 0 : aCustomer.paymentHistory.weeksDelinquentInLastYer;
+}
+

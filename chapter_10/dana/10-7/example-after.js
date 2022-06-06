@@ -1,16 +1,22 @@
-class Customer {
-    applyDiscount(aNumber) {
-        if (!this.discountRate) return aNumber;
-        else {
-            assert(this.discountRate >= 0);
-            return aNumber - (this.discountRate * aNumber);
-        }
-    }
+checkForMiscreants(people);
 
-// 이편이 더 낫다.
-    set discountRate(aNumber) {
-        assert(null === aNumber || aNumber >= 0);
-        this._discountRate = aNumber;
+
+function checkForMiscreants(people) {
+    for (const p of people) {
+        if (p === "조커") {
+            setAlert();
+            return;
+        }
+
+        if (p === "사루만") {
+            setAlert();
+            return;
+        }
     }
 }
 
+// 더 나은 코드
+
+function checkForMiscreants(people) {
+    if (people.some(p => ["조커", "사루만"].includes(p))) sendAlert();
+}
