@@ -1,1 +1,0 @@
-package me.whiteship.refactoring._20_large_class;
