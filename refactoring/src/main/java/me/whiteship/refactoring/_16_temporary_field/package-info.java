@@ -1,1 +1,0 @@
-package me.whiteship.refactoring._16_temporary_field;
