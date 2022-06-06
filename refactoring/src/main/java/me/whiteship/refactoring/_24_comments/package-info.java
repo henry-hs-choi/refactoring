@@ -1,1 +1,0 @@
-package me.whiteship.refactoring._24_comments;

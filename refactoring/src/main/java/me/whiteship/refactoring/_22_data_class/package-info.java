@@ -1,1 +1,0 @@
-package me.whiteship.refactoring._22_data_class;
