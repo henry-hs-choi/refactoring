@@ -1,18 +1,20 @@
-class Employee {
-    constructor(name, typeCode) {
-        this._name = name;
-        this._typeCode = typeCode;
+function score(candidate, medicalExam, scoringGuide) {
+    let result = 0;
+    let healthLevel = 0;
+    let highMedicalRiskFlag = false;
+
+    if (medicalExam.isSmoker) {
+        healthLevel += 10;
+        highMedicalRiskFlag = true;
     }
 
-    get name() {return this._name;}
-    get type() {
-        return Employee.legalTypeCodes[this._typeCode];
+    let certificationGrade = "regular";
+    if (scoringGuide.stateWithLowCertification(candidate.originState)) {
+        certificationGrade = "low";
+        result -= 5;
     }
-    static get legalTypeCodes() {
-        return {"E": "Engineer", "M": "Manager", "S": "Salesperson"};
-    }
+
+    // 비슷한 코드가 한참 이어짐
+    result -= Math.max(healthLevel - 5, 0);
+    return result;
 }
-
-// 호출자
-candidate = new Employee(document.name, document.empType);
-const leadEngineer = new Employee(document.leadEngineer, 'E');
