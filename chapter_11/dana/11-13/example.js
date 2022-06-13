@@ -1,14 +1,16 @@
-function localShippingRules(country) {
-    const data = countryData.shippingRules[country];
-    if (data) return new ShippingRules(data);
-    else return -23;
-}
+class ResourcePool {
+    public Resource get() {
+        Resource result;
+        try {
+            result = available.pop();
+            allocated.add(result);
+        } catch (NoSuchElementException e) {
+            result = Resource.create();
+            allocated.add(result);
+        }
+        return result;
+    }
 
-function calculateShippingCosts(anOrder) {
-    // 관련 없는 코드
-    const shippingRules = localShippingRules(anOrder.country);
-    if (shipping < 0) return shippingRules; // 오류전파
+    private Deque<Resource> available;
+    private List<Resource> allocated;
 }
-
-const status = calculateShippingCosts(orderData);
-if (status < 0) errorList.push({order: orderData, errorCode: status});

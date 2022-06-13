@@ -1,16 +1,27 @@
+function localShippingRules(country) {
+    const data = countryData.shippingRules[country];
+    if (data) return new ShippingRules(data);
+    else return -23;
+}
 
-const totalAscent = totalAscent = calculateAscent();
-const totalTime = calculateTime();
-const totalDistance = calculateDistance();
-calculateTime();
-calculateDistance();
-const pace = totalTime / 60 / totalDistance;
+function calculateShippingCosts(anOrder) {
+    // 관련 없는 코드
+    const shippingRules = localShippingRules(anOrder.country);
+}
 
-function calculateAscent() {
-    let result = 0;
-    for (let i = 1 ; i < points.length ; i++) {
-        const verticalChange = points[i].elevation - points[i-1].elevation;
-        result += (verticalChange > 0) ? verticalChange : 0;
+try {
+    calculateShippingCosts(orderData);
+} catch (e) {
+    if (e instanceof OrderProcessingError)
+        errorList.push({order: orderData, errorCode: e.code});
+    else
+        throw e;
+}
+
+class OrderProcessingError extends Error {
+    constructor(errorCode) {
+        super(`주문처리 오류: ${errorCode}`);
+        this.code = errorCode;
     }
-    return result;
+    get name() {return "OrderProcessingError";}
 }

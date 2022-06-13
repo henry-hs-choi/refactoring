@@ -1,14 +1,14 @@
-let totalAscent = 0;
-let totalTime = 0;
-let totalDistance = 0;
-calculateAscent();
-calculateTime();
-calculateDistance();
-const pace = totalTime / 60 / totalDistance;
-
-function calculateAscent() {
-    for (let i = 1 ; i < points.length ; i++) {
-        const verticalChange = points[i].elevation - points[i-1].elevation;
-        totalAscent += (verticalChange > 0) ? verticalChange : 0;
-    }
+function localShippingRules(country) {
+    const data = countryData.shippingRules[country];
+    if (data) return new ShippingRules(data);
+    else return -23;
 }
+
+function calculateShippingCosts(anOrder) {
+    // 관련 없는 코드
+    const shippingRules = localShippingRules(anOrder.country);
+    if (shipping < 0) return shippingRules; // 오류전파
+}
+
+const status = calculateShippingCosts(orderData);
+if (status < 0) errorList.push({order: orderData, errorCode: status});
